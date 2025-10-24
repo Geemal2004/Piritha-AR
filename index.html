@@ -9,17 +9,10 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
 
-<!-- Fixed aspect ratio container for social media -->
-<div id="ar-container">
 <a-scene 
   vr-mode-ui="enabled: false" 
   arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
   renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
-  
-  <!-- Lighting for 3D model visibility -->
-  <a-light type="ambient" color="#ffffff" intensity="0.6"></a-light>
-  <a-light type="directional" color="#ffffff" intensity="0.8" position="-1 1 1"></a-light>
-  <a-light type="directional" color="#ffffff" intensity="0.4" position="1 1 -1"></a-light>
   
   <!-- GPS Camera -->
   <a-camera 
@@ -37,7 +30,6 @@
   </a-entity>
 
 </a-scene>
-</div>
 
 <!-- GPS Status HUD -->
 <div id="gps-hud" style="position: fixed; bottom: 10px; left: 10px; padding: 10px; 
@@ -46,8 +38,8 @@
 </div>
 
 <!-- Instructions -->
-<div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; 
-     text-align: center; z-index: 1; color: white; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px;">
+<div style="position: fixed; top: 10px; width: 100%; text-align: center; z-index: 1; 
+     color: white; background: rgba(0,0,0,0.6); padding: 10px;">
   <p style="margin: 5px;">Target: 6.820290, 80.039588</p>
   <p style="margin: 5px; font-size: 13px; color: #ffff00;">Look for rotating logo</p>
   <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
@@ -85,41 +77,8 @@
         const canvas = scene.renderer.domElement;
         
         try {
-          // Create a temporary canvas for 9:16 aspect ratio (social media friendly)
-          const tempCanvas = document.createElement('canvas');
-          const ctx = tempCanvas.getContext('2d');
-          
-          // Set fixed 9:16 aspect ratio (1080x1920 for Instagram/TikTok)
-          const targetWidth = 1080;
-          const targetHeight = 1920;
-          tempCanvas.width = targetWidth;
-          tempCanvas.height = targetHeight;
-          
-          // Calculate source dimensions to maintain aspect ratio
-          const sourceAspect = canvas.width / canvas.height;
-          const targetAspect = targetWidth / targetHeight;
-          
-          let sx, sy, sWidth, sHeight;
-          
-          if (sourceAspect > targetAspect) {
-            // Source is wider - crop sides
-            sHeight = canvas.height;
-            sWidth = canvas.height * targetAspect;
-            sx = (canvas.width - sWidth) / 2;
-            sy = 0;
-          } else {
-            // Source is taller - crop top/bottom
-            sWidth = canvas.width;
-            sHeight = canvas.width / targetAspect;
-            sx = 0;
-            sy = (canvas.height - sHeight) / 2;
-          }
-          
-          // Draw centered, cropped image
-          ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-          
-          // Convert to data URL
-          const dataURL = tempCanvas.toDataURL('image/png');
+          // Create image from canvas
+          const dataURL = canvas.toDataURL('image/png');
           
           // Check if image has content
           if (dataURL === 'data:,') {
