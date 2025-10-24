@@ -7,116 +7,144 @@
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <style>
-    html, body {
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    body {
       margin: 0;
-      height: 100%;
-      background: #000;
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #020617;
+      color: #f8fafc;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    #ar-container {
-      position: fixed;
-      inset: 0;
+    a-scene {
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
     }
 
-    #ar-container a-scene,
-    #ar-container canvas,
-    #ar-container video {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-    }
-
-    video.arjs-video {
+    .hud {
       position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #instructions {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 24px);
-      max-width: 480px;
-      text-align: center;
-      color: #fff;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(6px);
-      padding: 12px 10px;
+      bottom: calc(16px + var(--safe-bottom));
+      left: calc(16px + var(--safe-left));
+      padding: 12px 16px;
+      background: rgba(13, 18, 28, 0.78);
+      backdrop-filter: blur(14px);
+      border-radius: 14px;
+      box-shadow: 0 18px 38px rgba(2, 6, 23, 0.45);
       font-size: 14px;
-      line-height: 1.4;
-      border-radius: 12px;
-      z-index: 3;
+      line-height: 1.45;
+      z-index: 9999;
+      max-width: min(90vw, 260px);
     }
 
-    #instructions p {
-      margin: 4px 0;
-    }
-
-    #gps-hud {
-      position: absolute;
-      bottom: 12px;
-      left: 12px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.65);
-      color: #fff;
-      border-radius: 10px;
+    .hud strong {
+      display: block;
       font-size: 12px;
-      z-index: 3;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #8cd7ff;
+      margin-bottom: 4px;
     }
 
-    #capture-btn {
-      position: absolute;
-      bottom: 22px;
+    .instructions {
+      position: fixed;
+      top: calc(16px + var(--safe-top));
       left: 50%;
       transform: translateX(-50%);
-      width: 76px;
-      height: 76px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 4px solid rgba(255, 255, 255, 0.8);
+      padding: 14px 22px;
+      background: rgba(8, 12, 24, 0.78);
+      backdrop-filter: blur(16px);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
+      text-align: center;
+      z-index: 9999;
+      color: #e2e8f0;
+      max-width: min(92vw, 360px);
+    }
+
+    .instructions p {
+      margin: 6px 0;
+      font-size: 13px;
+    }
+
+    .instructions__title {
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #bae6fd;
+    }
+
+    .instructions__hint {
+      color: #facc15;
+      font-weight: 500;
+    }
+
+    .instructions__distance {
+      font-size: 12px;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .shutter-btn {
+      position: fixed;
+      bottom: calc(24px + var(--safe-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      background: rgba(15, 23, 42, 0.52);
+      backdrop-filter: blur(12px);
       cursor: pointer;
-      z-index: 3;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+      z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.15s ease;
+      transition: transform 140ms ease, border-color 180ms ease, background 200ms ease;
     }
 
-    #capture-btn div {
-      width: 62px;
-      height: 62px;
-      background: #fff;
+    .shutter-btn__inner {
+      width: 66px;
+      height: 66px;
       border-radius: 50%;
-      border: 3px solid #333;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s ease;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(234, 236, 240, 0.78));
+      border: 2px solid rgba(15, 23, 42, 0.38);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), inset 0 -3px 6px rgba(15, 23, 42, 0.28);
+      transition: background 220ms ease;
     }
 
-    #ar-container .a-enter-vr {
-      bottom: 18px;
-      right: 18px;
+    .shutter-btn.is-capturing {
+      transform: translateX(-50%) scale(0.92);
+      border-color: rgba(74, 222, 128, 0.85);
+    }
+
+    @media (min-width: 768px) {
+      .instructions {
+        max-width: 420px;
+        padding: 16px 28px;
+      }
+
+      .instructions p {
+        font-size: 14px;
+      }
+
+      .hud {
+        font-size: 15px;
+      }
     }
   </style>
 </head>
 <body>
 
-<div id="ar-container">
-
-<a-scene embedded
+<a-scene 
   vr-mode-ui="enabled: false" 
   arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
   renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
@@ -139,77 +167,81 @@
 </a-scene>
 
 <!-- GPS Status HUD -->
-<div id="gps-hud">
+<div id="gps-hud" class="hud">
   GPS: Waiting...
 </div>
 
 <!-- Instructions -->
-<div id="instructions">
-  <p style="margin: 5px;">Target: 6.820290, 80.039588</p>
-  <p style="margin: 5px; font-size: 13px; color: #ffff00;">Look for rotating logo</p>
-  <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
+<div class="instructions">
+  <p class="instructions__title">NSBM AR Marker</p>
+  <p class="instructions__hint">Target: 6.820290, 80.039588</p>
+  <p class="instructions__distance">Stand 5-50 m away and aim your camera toward the site.</p>
 </div>
 
 <!-- Capture Photo Button -->
-<button id="capture-btn">
-  <div>
-  </div>
+<button id="capture-btn" class="shutter-btn" aria-label="Capture photo">
+  <span class="shutter-btn__inner"></span>
 </button>
-
-</div>
 
 <script>
   // Photo capture functionality
   const captureBtn = document.getElementById('capture-btn');
-  
-  captureBtn.addEventListener('click', function() {
-    // Flash effect - scale animation
-    captureBtn.style.transform = 'translateX(-50%) scale(0.9)';
-    
+  const innerRing = captureBtn ? captureBtn.querySelector('.shutter-btn__inner') : null;
+
+  captureBtn?.addEventListener('click', function() {
+    captureBtn.classList.add('is-capturing');
+
     // Wait for next frame to ensure scene is rendered
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const scene = document.querySelector('a-scene');
-        
+
         if (!scene || !scene.renderer) {
           alert('Scene not ready. Please try again.');
-          captureBtn.style.transform = 'translateX(-50%) scale(1)';
+          captureBtn.classList.remove('is-capturing');
           return;
         }
-        
+
         const canvas = scene.renderer.domElement;
-        
+
         try {
           // Create image from canvas
           const dataURL = canvas.toDataURL('image/png');
-          
+
           // Check if image has content
           if (dataURL === 'data:,') {
             alert('Canvas is empty. Make sure AR is active.');
-            captureBtn.style.transform = 'translateX(-50%) scale(1)';
+            captureBtn.classList.remove('is-capturing');
             return;
           }
-          
+
           // Create download link
           const link = document.createElement('a');
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
           link.download = `AR-Campus-Logo-${timestamp}.png`;
           link.href = dataURL;
           link.click();
-          
+
           // Success feedback - brief flash
-          captureBtn.querySelector('div').style.background = '#4CAF50';
-          
+          if (innerRing) {
+            innerRing.style.background = '#4CAF50';
+          }
+
           // Reset button
           setTimeout(() => {
-            captureBtn.style.transform = 'translateX(-50%) scale(1)';
-            captureBtn.querySelector('div').style.background = 'white';
-          }, 300);
-          
+            captureBtn.classList.remove('is-capturing');
+            if (innerRing) {
+              innerRing.style.background = '';
+            }
+          }, 320);
+
         } catch (error) {
           console.error('Capture error:', error);
           alert('Failed to capture photo: ' + error.message);
-          captureBtn.style.transform = 'translateX(-50%) scale(1)';
+          captureBtn.classList.remove('is-capturing');
+          if (innerRing) {
+            innerRing.style.background = '';
+          }
         }
       });
     });
