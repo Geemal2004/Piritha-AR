@@ -2,34 +2,82 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2025 NSBM AR Experience</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+    }
+    
+    #ar-container {
+      position: relative;
+      background: #000;
+      transition: all 0.3s ease;
+    }
+    
+    /* Portrait mode - 9:16 (Instagram Story, TikTok) */
+    #ar-container.portrait {
+      width: 100vw;
+      height: 177.78vw; /* 16/9 * 100 */
+      max-height: 100vh;
+      max-width: 56.25vh; /* 9/16 * 100 */
+    }
+    
+    /* Landscape mode - 16:9 (YouTube) */
+    #ar-container.landscape {
+      width: 100vw;
+      height: 56.25vw; /* 9/16 * 100 */
+      max-height: 100vh;
+      max-width: 177.78vh; /* 16/9 * 100 */
+    }
+    
+    a-scene {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    a-scene canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+  </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
 
-<a-scene 
-  vr-mode-ui="enabled: false" 
-  arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
-  renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
-  
-  <!-- GPS Camera -->
-  <a-camera 
-    gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50;" 
-    rotation-reader>
-  </a-camera>
-  
-  <!-- Your 3D Model at Fixed GPS Location -->
-  <a-entity
-    gps-new-entity-place="latitude: 6.820290; longitude: 80.039588;"
-    gltf-model="model.glb"
-    scale="5 5 5"
-    position="0 0 0"
-    animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
-  </a-entity>
+<div id="ar-container" class="portrait">
+  <a-scene 
+    vr-mode-ui="enabled: false" 
+    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
+    renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
+    
+    <!-- GPS Camera -->
+    <a-camera 
+      gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50;" 
+      rotation-reader>
+    </a-camera>
+    
+    <!-- Your 3D Model at Fixed GPS Location -->
+    <a-entity
+      gps-new-entity-place="latitude: 6.820290; longitude: 80.039588;"
+      gltf-model="model.glb"
+      scale="5 5 5"
+      position="0 0 0"
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
+    </a-entity>
 
-</a-scene>
+  </a-scene>
+</div>
 
 <!-- GPS Status HUD -->
 <div id="gps-hud" style="position: fixed; bottom: 10px; left: 10px; padding: 10px; 
@@ -45,6 +93,20 @@
   <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
 </div>
 
+<!-- Aspect Ratio Toggle Buttons -->
+<div style="position: fixed; top: 80px; right: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;">
+  <button id="portrait-btn" class="aspect-btn active" style="padding: 10px 15px; background: #4CAF50; 
+       color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: bold; 
+       box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-size: 12px;">
+    📱 9:16<br>Portrait
+  </button>
+  <button id="landscape-btn" class="aspect-btn" style="padding: 10px 15px; background: rgba(255,255,255,0.3); 
+       color: white; border: 2px solid white; border-radius: 8px; cursor: pointer; font-weight: bold; 
+       box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-size: 12px;">
+    📺 16:9<br>Landscape
+  </button>
+</div>
+
 <!-- Capture Photo Button -->
 <button id="capture-btn" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
      width: 70px; height: 70px; background: white; color: white; border: 4px solid #e0e0e0; 
@@ -56,6 +118,25 @@
 </button>
 
 <script>
+  // Aspect ratio toggle functionality
+  const arContainer = document.getElementById('ar-container');
+  const portraitBtn = document.getElementById('portrait-btn');
+  const landscapeBtn = document.getElementById('landscape-btn');
+  
+  portraitBtn.addEventListener('click', function() {
+    arContainer.className = 'portrait';
+    portraitBtn.style.background = '#4CAF50';
+    landscapeBtn.style.background = 'rgba(255,255,255,0.3)';
+    console.log('Switched to Portrait mode (9:16)');
+  });
+  
+  landscapeBtn.addEventListener('click', function() {
+    arContainer.className = 'landscape';
+    landscapeBtn.style.background = '#4CAF50';
+    portraitBtn.style.background = 'rgba(255,255,255,0.3)';
+    console.log('Switched to Landscape mode (16:9)');
+  });
+  
   // Photo capture functionality
   const captureBtn = document.getElementById('capture-btn');
   
@@ -77,41 +158,8 @@
         const canvas = scene.renderer.domElement;
         
         try {
-          // Create a temporary canvas for 9:16 aspect ratio (social media friendly)
-          const tempCanvas = document.createElement('canvas');
-          const ctx = tempCanvas.getContext('2d');
-          
-          // Set fixed 9:16 aspect ratio (1080x1920 for Instagram/TikTok)
-          const targetWidth = 1080;
-          const targetHeight = 1920;
-          tempCanvas.width = targetWidth;
-          tempCanvas.height = targetHeight;
-          
-          // Calculate source dimensions to maintain aspect ratio
-          const sourceAspect = canvas.width / canvas.height;
-          const targetAspect = targetWidth / targetHeight;
-          
-          let sx, sy, sWidth, sHeight;
-          
-          if (sourceAspect > targetAspect) {
-            // Source is wider - crop sides
-            sHeight = canvas.height;
-            sWidth = canvas.height * targetAspect;
-            sx = (canvas.width - sWidth) / 2;
-            sy = 0;
-          } else {
-            // Source is taller - crop top/bottom
-            sWidth = canvas.width;
-            sHeight = canvas.width / targetAspect;
-            sx = 0;
-            sy = (canvas.height - sHeight) / 2;
-          }
-          
-          // Draw centered, cropped image
-          ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
-          
-          // Convert to data URL
-          const dataURL = tempCanvas.toDataURL('image/png');
+          // Create image from canvas
+          const dataURL = canvas.toDataURL('image/png');
           
           // Check if image has content
           if (dataURL === 'data:,') {
