@@ -6,10 +6,112 @@
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-</head>
-<body style="margin: 0; overflow: hidden;">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
 
-<a-scene 
+    #ar-container {
+      position: relative;
+      width: min(92vw, 420px);
+      aspect-ratio: 9 / 16;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    #ar-container a-scene {
+      width: 100%;
+      height: 100%;
+    }
+
+    #ar-container video,
+    #ar-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+
+    #instructions {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 12px 10px;
+      font-size: 14px;
+      line-height: 1.4;
+      z-index: 3;
+    }
+
+    #instructions p {
+      margin: 4px 0;
+    }
+
+    #gps-hud {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 12px;
+      z-index: 3;
+    }
+
+    #capture-btn {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 76px;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 3;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease;
+    }
+
+    #capture-btn div {
+      width: 62px;
+      height: 62px;
+      background: #fff;
+      border-radius: 50%;
+      border: 3px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    #ar-container .a-enter-vr {
+      bottom: 18px;
+      right: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ar-container">
+
+<a-scene embedded
   vr-mode-ui="enabled: false" 
   arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
   renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
@@ -32,28 +134,24 @@
 </a-scene>
 
 <!-- GPS Status HUD -->
-<div id="gps-hud" style="position: fixed; bottom: 10px; left: 10px; padding: 10px; 
-     background: rgba(0,0,0,0.7); color: white; font-family: Arial; border-radius: 8px; z-index: 9999;">
+<div id="gps-hud">
   GPS: Waiting...
 </div>
 
 <!-- Instructions -->
-<div style="position: fixed; top: 10px; width: 100%; text-align: center; z-index: 1; 
-     color: white; background: rgba(0,0,0,0.6); padding: 10px;">
+<div id="instructions">
   <p style="margin: 5px;">Target: 6.820290, 80.039588</p>
   <p style="margin: 5px; font-size: 13px; color: #ffff00;">Look for rotating logo</p>
   <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
 </div>
 
 <!-- Capture Photo Button -->
-<button id="capture-btn" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
-     width: 70px; height: 70px; background: white; color: white; border: 4px solid #e0e0e0; 
-     border-radius: 50%; cursor: pointer; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-     display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
-  <div style="width: 60px; height: 60px; background: white; border-radius: 50%; 
-       border: 3px solid #333; display: flex; align-items: center; justify-content: center;">
+<button id="capture-btn">
+  <div>
   </div>
 </button>
+
+</div>
 
 <script>
   // Photo capture functionality
