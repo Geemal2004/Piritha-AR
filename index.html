@@ -173,13 +173,29 @@
     <a-light type="directional" color="#ffffff" intensity="0.6" position="-1 1 -1"></a-light>
     <a-light type="hemisphere" color="#ffffff" groundColor="#888888" intensity="0.5"></a-light>
     
-  <!-- Your 3D Model at Fixed GPS Location -->
+  <!-- Your 3D Model at Fixed GPS Location with Glow -->
   <a-entity
     gps-new-entity-place="latitude: 6.821446; longitude: 80.038138;"
-    gltf-model="model.glb"
-    scale="5 5 5"
-    position="0 0 0"
-    animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
+    position="0 0 0">
+    
+    <!-- Glow sphere behind model -->
+    <a-sphere 
+      radius="3" 
+      material="color: #4dd0e1; opacity: 0.3; transparent: true; shader: flat"
+      animation="property: scale; to: 3.2 3.2 3.2; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true">
+    </a-sphere>
+    
+    <!-- The 3D Model -->
+    <a-entity
+      gltf-model="model.glb"
+      scale="5 5 5"
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear"
+      model-glow>
+    </a-entity>
+    
+    <!-- Point light attached to model for glow effect -->
+    <a-light type="point" color="#4dd0e1" intensity="2" distance="15"></a-light>
+    
   </a-entity>  </a-scene>
 </div>
 
@@ -201,6 +217,25 @@
 </button>
 
 <script>
+  // Add glow effect to model
+  AFRAME.registerComponent('model-glow', {
+    init: function() {
+      this.el.addEventListener('model-loaded', () => {
+        const model = this.el.getObject3D('mesh');
+        if (model) {
+          model.traverse((node) => {
+            if (node.isMesh && node.material) {
+              // Add emissive glow
+              node.material.emissive = new THREE.Color(0x4dd0e1);
+              node.material.emissiveIntensity = 0.5;
+              node.material.needsUpdate = true;
+            }
+          });
+        }
+      });
+    }
+  });
+
   // Photo capture functionality
   const captureBtn = document.getElementById('capture-btn');
   const innerRing = captureBtn ? captureBtn.querySelector('.shutter-btn__inner') : null;
