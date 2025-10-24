@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NSBM AR Pro Settings</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #020617;
+      color: #f8fafc;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #ar-container {
+      position: relative;
+      width: 640px;
+      height: 480px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      background: #000;
+    }
+
+    @media (max-width: 680px) {
+      #ar-container {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        margin: 0;
+      }
+      
+      body {
+        display: block;
+      }
+    }
+
+    a-scene {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+    }
+
+    .hud {
+      position: absolute;
+      bottom: calc(16px + var(--safe-bottom));
+      left: calc(16px + var(--safe-left));
+      padding: 12px 16px;
+      background: rgba(13, 18, 28, 0.78);
+      backdrop-filter: blur(14px);
+      border-radius: 14px;
+      box-shadow: 0 18px 38px rgba(2, 6, 23, 0.45);
+      font-size: 14px;
+      line-height: 1.45;
+      z-index: 9999;
+      max-width: min(90vw, 260px);
+    }
+
+    .hud strong {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #8cd7ff;
+      margin-bottom: 4px;
+    }
+
+    .instructions {
+      position: absolute;
+      top: calc(16px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 22px;
+      background: rgba(8, 12, 24, 0.78);
+      backdrop-filter: blur(16px);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
+      text-align: center;
+      z-index: 9999;
+      color: #e2e8f0;
+      max-width: min(92vw, 360px);
+    }
+
+    .instructions p {
+      margin: 6px 0;
+      font-size: 13px;
+    }
+
+    .instructions__title {
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #bae6fd;
+    }
+
+    .instructions__hint {
+      color: #facc15;
+      font-weight: 500;
+    }
+
+    .instructions__distance {
+      font-size: 12px;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
+    .shutter-btn {
+      position: absolute;
+      bottom: calc(24px + var(--safe-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      background: rgba(15, 23, 42, 0.52);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 140ms ease, border-color 180ms ease, background 200ms ease;
+    }
+
+    .shutter-btn__inner {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(234, 236, 240, 0.78));
+      border: 2px solid rgba(15, 23, 42, 0.38);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), inset 0 -3px 6px rgba(15, 23, 42, 0.28);
+      transition: background 220ms ease;
+    }
+
+    .shutter-btn.is-capturing {
+      transform: translateX(-50%) scale(0.92);
+      border-color: rgba(74, 222, 128, 0.85);
+    }
+
+    /* Pro Settings Button */
+    .pro-btn {
+      position: absolute;
+      top: calc(16px + var(--safe-top));
+      right: calc(16px + var(--safe-right));
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: rgba(139, 92, 246, 0.9);
+      border: 2px solid rgba(167, 139, 250, 0.5);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .pro-btn:hover {
+      background: rgba(139, 92, 246, 1);
+      transform: scale(1.05);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: #bae6fd;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(239, 68, 68, 0.4);
+    }
+
+    .control-group {
+      margin-bottom: 25px;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-group input[type="text"],
+    .control-group input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    .control-group input[type="text"]:focus,
+    .control-group input[type="number"]:focus {
+      outline: none;
+      border-color: rgba(139, 92, 246, 0.8);
+    }
+
+    .slider-container {
+      margin-top: 10px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(15, 23, 42, 0.6);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #8b5cf6;
+      cursor: pointer;
+      border: 2px solid #a78bfa;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #8b5cf6;
+      cursor: pointer;
+      border: 2px solid #a78bfa;
+    }
+
+    .apply-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .apply-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    @media (min-width: 768px) {
+      .instructions {
+        max-width: 420px;
+        padding: 16px 28px;
+      }
+
+      .instructions p {
+        font-size: 14px;
+      }
+
+      .hud {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="ar-container">
+  <a-scene 
+    vr-mode-ui="enabled: false" 
+    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
+    renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
+    
+    <!-- GPS Camera -->
+    <a-camera 
+      gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50;" 
+      rotation-reader>
+    </a-camera>
+    
+    <!-- Lighting for Night Outdoor -->
+    <a-light type="ambient" color="#ffffff" intensity="2.0"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.5" position="0 2 1"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.2" position="0 2 -1"></a-light>
+    <a-light type="point" color="#ffffff" intensity="2" position="0 3 0"></a-light>
+    
+  <!-- Your 3D Model at Fixed GPS Location -->
+  <a-entity
+    id="ar-model"
+    gps-new-entity-place="latitude: 6.821446; longitude: 80.038138;"
+    gltf-model="model.glb"
+    scale="5 5 5"
+    position="0 0 0"
+    animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
+  </a-entity>  </a-scene>
+</div>
+
+<!-- GPS Status HUD -->
+<div id="gps-hud" class="hud">
+  GPS: Waiting...
+</div>
+
+<!-- Instructions -->
+<div class="instructions">
+  <p class="instructions__title">NSBM AR Pro</p>
+  <p class="instructions__hint" id="target-display">Target: 6.821446, 80.038138</p>
+  <p class="instructions__distance">Stand 5-50 m away and aim your camera toward the site.</p>
+</div>
+
+<!-- Pro Settings Button -->
+<button class="pro-btn" id="pro-btn" aria-label="Pro Settings">⚙️</button>
+
+<!-- Capture Photo Button -->
+<button id="capture-btn" class="shutter-btn" aria-label="Capture photo">
+  <span class="shutter-btn__inner"></span>
+</button>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ Pro Settings</h2>
+      <button class="close-btn" id="close-modal">✕</button>
+    </div>
+
+    <div class="control-group">
+      <label>📍 GPS Location</label>
+      <input type="text" id="latitude" placeholder="Latitude (e.g., 6.821446)" value="6.821446">
+      <input type="text" id="longitude" placeholder="Longitude (e.g., 80.038138)" value="80.038138" style="margin-top: 10px;">
+    </div>
+
+    <div class="control-group">
+      <label>📏 Scale</label>
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Size</span>
+          <span id="scale-value">5</span>
+        </div>
+        <input type="range" class="slider" id="scale-slider" min="1" max="20" value="5" step="0.5">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>↕️ Height (Y Position)</label>
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Vertical Position</span>
+          <span id="height-value">0 m</span>
+        </div>
+        <input type="range" class="slider" id="height-slider" min="-10" max="50" value="0" step="1">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>↔️ X Position</label>
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Horizontal Left/Right</span>
+          <span id="x-value">0 m</span>
+        </div>
+        <input type="range" class="slider" id="x-slider" min="-20" max="20" value="0" step="1">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>↕️ Z Position</label>
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>Depth Forward/Back</span>
+          <span id="z-value">0 m</span>
+        </div>
+        <input type="range" class="slider" id="z-slider" min="-20" max="20" value="0" step="1">
+      </div>
+    </div>
+
+    <button class="apply-btn" id="apply-settings">Apply Settings</button>
+  </div>
+</div>
+
+<script>
+  // Settings state
+  let settings = {
+    latitude: 6.821446,
+    longitude: 80.038138,
+    scale: 5,
+    posX: 0,
+    posY: 0,
+    posZ: 0
+  };
+
+  // Modal controls
+  const modal = document.getElementById('settings-modal');
+  const proBtn = document.getElementById('pro-btn');
+  const closeBtn = document.getElementById('close-modal');
+  const applyBtn = document.getElementById('apply-settings');
+
+  proBtn.addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+    }
+  });
+
+  // Slider updates
+  const scaleSlider = document.getElementById('scale-slider');
+  const scaleValue = document.getElementById('scale-value');
+  scaleSlider.addEventListener('input', (e) => {
+    scaleValue.textContent = e.target.value;
+  });
+
+  const heightSlider = document.getElementById('height-slider');
+  const heightValue = document.getElementById('height-value');
+  heightSlider.addEventListener('input', (e) => {
+    heightValue.textContent = e.target.value + ' m';
+  });
+
+  const xSlider = document.getElementById('x-slider');
+  const xValue = document.getElementById('x-value');
+  xSlider.addEventListener('input', (e) => {
+    xValue.textContent = e.target.value + ' m';
+  });
+
+  const zSlider = document.getElementById('z-slider');
+  const zValue = document.getElementById('z-value');
+  zSlider.addEventListener('input', (e) => {
+    zValue.textContent = e.target.value + ' m';
+  });
+
+  // Apply settings
+  applyBtn.addEventListener('click', () => {
+    const lat = parseFloat(document.getElementById('latitude').value);
+    const lon = parseFloat(document.getElementById('longitude').value);
+    const scale = parseFloat(scaleSlider.value);
+    const posX = parseFloat(xSlider.value);
+    const posY = parseFloat(heightSlider.value);
+    const posZ = parseFloat(zSlider.value);
+
+    if (isNaN(lat) || isNaN(lon)) {
+      alert('Please enter valid GPS coordinates');
+      return;
+    }
+
+    settings = { latitude: lat, longitude: lon, scale, posX, posY, posZ };
+
+    // Update model
+    const model = document.getElementById('ar-model');
+    if (model) {
+      model.setAttribute('gps-new-entity-place', `latitude: ${lat}; longitude: ${lon}`);
+      model.setAttribute('scale', `${scale} ${scale} ${scale}`);
+      model.setAttribute('position', `${posX} ${posY} ${posZ}`);
+    }
+
+    // Update target display
+    document.getElementById('target-display').textContent = `Target: ${lat}, ${lon}`;
+    
+    // Update distance calculation
+    targetLat = lat;
+    targetLon = lon;
+
+    modal.classList.remove('active');
+    alert('Settings applied successfully! ✅');
+  });
+
+  // Photo capture functionality
+  const captureBtn = document.getElementById('capture-btn');
+  const innerRing = captureBtn ? captureBtn.querySelector('.shutter-btn__inner') : null;
+
+  captureBtn?.addEventListener('click', function() {
+    captureBtn.classList.add('is-capturing');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const scene = document.querySelector('a-scene');
+
+        if (!scene || !scene.renderer) {
+          alert('Scene not ready. Please try again.');
+          captureBtn.classList.remove('is-capturing');
+          return;
+        }
+
+        const canvas = scene.renderer.domElement;
+
+        try {
+          const dataURL = canvas.toDataURL('image/png');
+
+          if (dataURL === 'data:,') {
+            alert('Canvas is empty. Make sure AR is active.');
+            captureBtn.classList.remove('is-capturing');
+            return;
+          }
+
+          const link = document.createElement('a');
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          link.download = `AR-Campus-Logo-${timestamp}.png`;
+          link.href = dataURL;
+          link.click();
+
+          if (innerRing) {
+            innerRing.style.background = '#4CAF50';
+          }
+
+          setTimeout(() => {
+            captureBtn.classList.remove('is-capturing');
+            if (innerRing) {
+              innerRing.style.background = '';
+            }
+          }, 320);
+
+        } catch (error) {
+          console.error('Capture error:', error);
+          alert('Failed to capture photo: ' + error.message);
+          captureBtn.classList.remove('is-capturing');
+          if (innerRing) {
+            innerRing.style.background = '';
+          }
+        }
+      });
+    });
+  });
+
+  // GPS position tracking
+  const hudEl = document.getElementById('gps-hud');
+  const camera = document.querySelector('[gps-new-camera]');
+  let targetLat = settings.latitude;
+  let targetLon = settings.longitude;
+
+  camera.addEventListener('gps-camera-update-position', function(event) {
+    const pos = event.detail.position;
+
+    // Calculate distance
+    const R = 6371000; // Earth radius in meters
+    const lat1 = pos.latitude * Math.PI / 180;
+    const lat2 = targetLat * Math.PI / 180;
+    const deltaLat = (targetLat - pos.latitude) * Math.PI / 180;
+    const deltaLon = (targetLon - pos.longitude) * Math.PI / 180;
+
+    const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+
+    hudEl.innerHTML = `
+      <strong>📍 GPS Position</strong><br>
+      Lat: ${pos.latitude.toFixed(6)}<br>
+      Lon: ${pos.longitude.toFixed(6)}<br>
+      Acc: ${pos.accuracy.toFixed(1)}m<br>
+      <strong>Distance to Target:</strong><br>
+      ${distance.toFixed(1)}m ${distance < 50 ? '✅' : '🚶'}
+    `;
+
+    console.log('GPS Update:', pos.latitude, pos.longitude, 'Distance:', distance.toFixed(1) + 'm');
+  });
+
+  // Model loaded check
+  window.addEventListener('load', () => {
+    const models = document.querySelectorAll('[gltf-model]');
+    models.forEach(model => {
+      model.addEventListener('model-loaded', () => {
+        console.log('✅ 3D Model loaded successfully!');
+      });
+      model.addEventListener('model-error', (e) => {
+        console.error('❌ Model loading error:', e);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
