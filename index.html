@@ -22,7 +22,7 @@
   
   <!-- Your 3D Model at Fixed GPS Location -->
   <a-entity
-    gps-new-entity-place="latitude: 6.821448; longitude: 80.038156;"
+    gps-new-entity-place="latitude: 6.820290; longitude: 80.039588;"
     gltf-model="model.glb"
     scale="5 5 5"
     position="0 0 0"
@@ -40,7 +40,7 @@
 <!-- Instructions -->
 <div style="position: fixed; top: 10px; width: 100%; text-align: center; z-index: 1; 
      color: white; background: rgba(0,0,0,0.6); padding: 10px;">
-  <p style="margin: 5px;">Target: 6.821448, 80.038156</p>
+  <p style="margin: 5px;">Target: 6.820290, 80.039588</p>
   <p style="margin: 5px; font-size: 13px; color: #ffff00;">Look for rotating logo</p>
   <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
 </div>
@@ -118,8 +118,8 @@
   
   camera.addEventListener('gps-camera-update-position', function(event) {
     const pos = event.detail.position;
-    const targetLat = 6.821448;
-    const targetLon = 80.038156;
+    const targetLat = 6.820290;
+    const targetLon = 80.039588;
     
     // Calculate distance
     const R = 6371000; // Earth radius in meters
