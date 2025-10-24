@@ -77,8 +77,41 @@
         const canvas = scene.renderer.domElement;
         
         try {
-          // Create image from canvas
-          const dataURL = canvas.toDataURL('image/png');
+          // Create a temporary canvas for 9:16 aspect ratio (social media friendly)
+          const tempCanvas = document.createElement('canvas');
+          const ctx = tempCanvas.getContext('2d');
+          
+          // Set fixed 9:16 aspect ratio (1080x1920 for Instagram/TikTok)
+          const targetWidth = 1080;
+          const targetHeight = 1920;
+          tempCanvas.width = targetWidth;
+          tempCanvas.height = targetHeight;
+          
+          // Calculate source dimensions to maintain aspect ratio
+          const sourceAspect = canvas.width / canvas.height;
+          const targetAspect = targetWidth / targetHeight;
+          
+          let sx, sy, sWidth, sHeight;
+          
+          if (sourceAspect > targetAspect) {
+            // Source is wider - crop sides
+            sHeight = canvas.height;
+            sWidth = canvas.height * targetAspect;
+            sx = (canvas.width - sWidth) / 2;
+            sy = 0;
+          } else {
+            // Source is taller - crop top/bottom
+            sWidth = canvas.width;
+            sHeight = canvas.width / targetAspect;
+            sx = 0;
+            sy = (canvas.height - sHeight) / 2;
+          }
+          
+          // Draw centered, cropped image
+          ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
+          
+          // Convert to data URL
+          const dataURL = tempCanvas.toDataURL('image/png');
           
           // Check if image has content
           if (dataURL === 'data:,') {
