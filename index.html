@@ -175,10 +175,10 @@
     
   <!-- Your 3D Model at Fixed GPS Location -->
   <a-entity
-    gps-new-entity-place="latitude: 6.821093; longitude: 80.038214;"
+    gps-new-entity-place="latitude: 6.821446; longitude: 80.038138;"
     gltf-model="model.glb"
     scale="5 5 5"
-    position="0 0 -10"
+    position="0 0 0"
     animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
   </a-entity>  </a-scene>
 </div>
@@ -191,7 +191,7 @@
 <!-- Instructions -->
 <div class="instructions">
   <p class="instructions__title">NSBM AR Marker</p>
-  <p class="instructions__hint">Target: 6.821093, 80.038214</p>
+  <p class="instructions__hint">Target: 6.821446, 80.038138</p>
   <p class="instructions__distance">Stand 5-50 m away and aim your camera toward the site.</p>
 </div>
 
@@ -270,8 +270,8 @@
   
   camera.addEventListener('gps-camera-update-position', function(event) {
     const pos = event.detail.position;
-    const targetLat = 6.821093;
-    const targetLon = 80.038214;
+    const targetLat = 6.821446;
+    const targetLon = 80.038138;
     
     // Calculate distance
     const R = 6371000; // Earth radius in meters
