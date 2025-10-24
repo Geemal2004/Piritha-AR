@@ -44,31 +44,19 @@
       height: 100vh !important;
     }
     
+    /* Hide the raw video element - only show AR canvas */
     video {
+      display: none !important;
+    }
+    
+    /* Ensure AR canvas fills screen properly */
+    canvas {
       position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      min-width: 100% !important;
-      min-height: 100% !important;
-      width: auto !important;
-      height: auto !important;
-    }
-    
-    /* For portrait mode */
-    @media (orientation: portrait) {
-      video {
-        width: 100vw !important;
-        height: auto !important;
-      }
-    }
-    
-    /* For landscape mode */
-    @media (orientation: landscape) {
-      video {
-        width: auto !important;
-        height: 100vh !important;
-      }
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
     }
   </style>
 </head>
