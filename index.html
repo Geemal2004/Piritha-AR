@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2025 NSBM AR Experience</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+
+<a-scene 
+  vr-mode-ui="enabled: false" 
+  arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
+  renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
+  
+  <!-- GPS Camera -->
+  <a-camera 
+    gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50;" 
+    rotation-reader>
+  </a-camera>
+  
+  <!-- Your 3D Model at Fixed GPS Location -->
+  <a-entity
+    gps-new-entity-place="latitude: 6.821448; longitude: 80.038156;"
+    gltf-model="model.glb"
+    scale="5 5 5"
+    position="0 0 0"
+    animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
+  </a-entity>
+
+</a-scene>
+
+<!-- GPS Status HUD -->
+<div id="gps-hud" style="position: fixed; bottom: 10px; left: 10px; padding: 10px; 
+     background: rgba(0,0,0,0.7); color: white; font-family: Arial; border-radius: 8px; z-index: 9999;">
+  GPS: Waiting...
+</div>
+
+<!-- Instructions -->
+<div style="position: fixed; top: 10px; width: 100%; text-align: center; z-index: 1; 
+     color: white; background: rgba(0,0,0,0.6); padding: 10px;">
+  <p style="margin: 5px;">📍 Target: 6.821448, 80.038156</p>
+  <p style="margin: 5px; font-size: 13px; color: #ffff00;">Look for rotating logo</p>
+  <p style="margin: 5px; font-size: 12px;">Stand 5-50m away and point camera towards location</p>
+</div>
+
+<!-- Capture Photo Button -->
+<button id="capture-btn" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+     width: 70px; height: 70px; background: white; color: white; border: 4px solid #e0e0e0; 
+     border-radius: 50%; cursor: pointer; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+     display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+  <div style="width: 60px; height: 60px; background: white; border-radius: 50%; 
+       border: 3px solid #333; display: flex; align-items: center; justify-content: center;">
+  </div>
+</button>
+
+<script>
+  // Photo capture functionality
+  const captureBtn = document.getElementById('capture-btn');
+  
+  captureBtn.addEventListener('click', function() {
+    // Flash effect - scale animation
+    captureBtn.style.transform = 'translateX(-50%) scale(0.9)';
+    
+    // Wait for next frame to ensure scene is rendered
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const scene = document.querySelector('a-scene');
+        
+        if (!scene || !scene.renderer) {
+          alert('Scene not ready. Please try again.');
+          captureBtn.style.transform = 'translateX(-50%) scale(1)';
+          return;
+        }
+        
+        const canvas = scene.renderer.domElement;
+        
+        try {
+          // Create image from canvas
+          const dataURL = canvas.toDataURL('image/png');
+          
+          // Check if image has content
+          if (dataURL === 'data:,') {
+            alert('Canvas is empty. Make sure AR is active.');
+            captureBtn.style.transform = 'translateX(-50%) scale(1)';
+            return;
+          }
+          
+          // Create download link
+          const link = document.createElement('a');
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          link.download = `AR-Campus-Logo-${timestamp}.png`;
+          link.href = dataURL;
+          link.click();
+          
+          // Success feedback - brief flash
+          captureBtn.querySelector('div').style.background = '#4CAF50';
+          
+          // Reset button
+          setTimeout(() => {
+            captureBtn.style.transform = 'translateX(-50%) scale(1)';
+            captureBtn.querySelector('div').style.background = 'white';
+          }, 300);
+          
+        } catch (error) {
+          console.error('Capture error:', error);
+          alert('Failed to capture photo: ' + error.message);
+          captureBtn.style.transform = 'translateX(-50%) scale(1)';
+        }
+      });
+    });
+  });
+  
+  // GPS position tracking
+  const hudEl = document.getElementById('gps-hud');
+  const camera = document.querySelector('[gps-new-camera]');
+  
+  camera.addEventListener('gps-camera-update-position', function(event) {
+    const pos = event.detail.position;
+    const targetLat = 6.821448;
+    const targetLon = 80.038156;
+    
+    // Calculate distance
+    const R = 6371000; // Earth radius in meters
+    const lat1 = pos.latitude * Math.PI / 180;
+    const lat2 = targetLat * Math.PI / 180;
+    const deltaLat = (targetLat - pos.latitude) * Math.PI / 180;
+    const deltaLon = (targetLon - pos.longitude) * Math.PI / 180;
+    
+    const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    
+    hudEl.innerHTML = `
+      <strong>📍 GPS Position</strong><br>
+      Lat: ${pos.latitude.toFixed(6)}<br>
+      Lon: ${pos.longitude.toFixed(6)}<br>
+      Acc: ${pos.accuracy.toFixed(1)}m<br>
+      <strong>Distance to Target:</strong><br>
+      ${distance.toFixed(1)}m ${distance < 50 ? '✅' : '🚶'}
+    `;
+    
+    console.log('GPS Update:', pos.latitude, pos.longitude, 'Distance:', distance.toFixed(1) + 'm');
+  });
+  
+  // Model loaded check
+  window.addEventListener('load', () => {
+    const models = document.querySelectorAll('[gltf-model]');
+    models.forEach(model => {
+      model.addEventListener('model-loaded', () => {
+        console.log('✅ 3D Model loaded successfully!');
+      });
+      model.addEventListener('model-error', (e) => {
+        console.error('❌ Model loading error:', e);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
