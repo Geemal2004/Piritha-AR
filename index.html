@@ -2,69 +2,16 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>2025 NSBM AR Experience</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      height: 100vh;
-      width: 100vw;
-    }
-    
-    a-scene {
-      width: 100vw !important;
-      height: 100vh !important;
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    
-    /* Fix video stretching - maintain aspect ratio */
-    .a-canvas {
-      position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      width: 100vw !important;
-      height: 100vh !important;
-    }
-    
-    /* Hide the raw video element - only show AR canvas */
-    video {
-      display: none !important;
-    }
-    
-    /* Ensure AR canvas fills screen properly */
-    canvas {
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      object-fit: cover !important;
-    }
-  </style>
 </head>
-<body>
+<body style="margin: 0; overflow: hidden;">
 
 <a-scene 
   vr-mode-ui="enabled: false" 
-  arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
+  arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: true;" 
   renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
   
   <!-- GPS Camera -->
