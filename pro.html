@@ -541,10 +541,25 @@
 
     // Update model
     const model = document.getElementById('ar-model');
-    if (model) {
-      model.setAttribute('gps-new-entity-place', `latitude: ${lat}; longitude: ${lon}`);
-      model.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      model.setAttribute('position', `${posX} ${posY} ${posZ}`);
+    const scene = document.querySelector('a-scene');
+    
+    if (model && scene) {
+      // Remove old model
+      model.parentNode.removeChild(model);
+      
+      // Create new model with updated settings
+      const newModel = document.createElement('a-entity');
+      newModel.setAttribute('id', 'ar-model');
+      newModel.setAttribute('gps-new-entity-place', `latitude: ${lat}; longitude: ${lon}`);
+      newModel.setAttribute('gltf-model', 'model.glb');
+      newModel.setAttribute('scale', `${scale} ${scale} ${scale}`);
+      newModel.setAttribute('position', `${posX} ${posY} ${posZ}`);
+      newModel.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
+      
+      // Add to scene
+      scene.appendChild(newModel);
+      
+      console.log('Model recreated with:', { lat, lon, scale, posX, posY, posZ });
     }
 
     // Update target display
