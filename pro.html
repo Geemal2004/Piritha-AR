@@ -359,13 +359,15 @@
 <div id="ar-container">
   <a-scene 
     vr-mode-ui="enabled: false" 
-    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
-    renderer="antialias: true; alpha: true; preserveDrawingBuffer: true;">
+    embedded
+    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true; alpha: true; preserveDrawingBuffer: true;">
     
     <!-- GPS Camera -->
     <a-camera 
-      gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50;" 
-      rotation-reader>
+      gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 50; simulateLatitude: 0; simulateLongitude: 0;" 
+      rotation-reader
+      look-controls="enabled: false">
     </a-camera>
     
     <!-- Lighting for Night Outdoor -->
@@ -381,6 +383,7 @@
     gltf-model="model.glb"
     scale="5 5 5"
     position="0 0 0"
+    rotation="0 0 0"
     animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
   </a-entity>  </a-scene>
 </div>
@@ -492,6 +495,7 @@
       model.setAttribute('gps-new-entity-place', `latitude: ${settings.latitude}; longitude: ${settings.longitude}`);
       model.setAttribute('scale', `${settings.scale} ${settings.scale} ${settings.scale}`);
       model.setAttribute('position', `${settings.posX} ${settings.posY} ${settings.posZ}`);
+      model.setAttribute('rotation', '0 0 0');
       
       // Update UI
       document.getElementById('latitude').value = settings.latitude;
@@ -506,6 +510,25 @@
       document.getElementById('z-value').textContent = settings.posZ + ' m';
       document.getElementById('target-display').textContent = `Target: ${settings.latitude}, ${settings.longitude}`;
     }
+    
+    // iOS specific - wait for scene to be ready
+    const scene = document.querySelector('a-scene');
+    if (scene) {
+      scene.addEventListener('loaded', () => {
+        console.log('✅ AR Scene loaded on iOS');
+      });
+    }
+    
+    // Check model loading
+    const models = document.querySelectorAll('[gltf-model]');
+    models.forEach(model => {
+      model.addEventListener('model-loaded', () => {
+        console.log('✅ 3D Model loaded successfully!');
+      });
+      model.addEventListener('model-error', (e) => {
+        console.error('❌ Model loading error:', e);
+      });
+    });
   });
 
   // Modal controls
