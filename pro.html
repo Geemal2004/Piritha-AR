@@ -478,6 +478,36 @@
     posZ: 0
   };
 
+  // Load saved settings from localStorage
+  const savedSettings = localStorage.getItem('ar-settings');
+  if (savedSettings) {
+    settings = JSON.parse(savedSettings);
+    console.log('Loaded saved settings:', settings);
+  }
+
+  // Apply settings on page load
+  window.addEventListener('load', () => {
+    const model = document.getElementById('ar-model');
+    if (model && savedSettings) {
+      model.setAttribute('gps-new-entity-place', `latitude: ${settings.latitude}; longitude: ${settings.longitude}`);
+      model.setAttribute('scale', `${settings.scale} ${settings.scale} ${settings.scale}`);
+      model.setAttribute('position', `${settings.posX} ${settings.posY} ${settings.posZ}`);
+      
+      // Update UI
+      document.getElementById('latitude').value = settings.latitude;
+      document.getElementById('longitude').value = settings.longitude;
+      document.getElementById('scale-slider').value = settings.scale;
+      document.getElementById('scale-value').textContent = settings.scale;
+      document.getElementById('x-slider').value = settings.posX;
+      document.getElementById('x-value').textContent = settings.posX + ' m';
+      document.getElementById('height-slider').value = settings.posY;
+      document.getElementById('height-value').textContent = settings.posY + ' m';
+      document.getElementById('z-slider').value = settings.posZ;
+      document.getElementById('z-value').textContent = settings.posZ + ' m';
+      document.getElementById('target-display').textContent = `Target: ${settings.latitude}, ${settings.longitude}`;
+    }
+  });
+
   // Modal controls
   const modal = document.getElementById('settings-modal');
   const proBtn = document.getElementById('pro-btn');
@@ -537,40 +567,19 @@
       return;
     }
 
-    settings = { latitude: lat, longitude: lon, scale, posX, posY, posZ };
+    // Save settings to localStorage
+    localStorage.setItem('ar-settings', JSON.stringify({
+      latitude: lat,
+      longitude: lon,
+      scale: scale,
+      posX: posX,
+      posY: posY,
+      posZ: posZ
+    }));
 
-    // Update model
-    const model = document.getElementById('ar-model');
-    const scene = document.querySelector('a-scene');
-    
-    if (model && scene) {
-      // Remove old model
-      model.parentNode.removeChild(model);
-      
-      // Create new model with updated settings
-      const newModel = document.createElement('a-entity');
-      newModel.setAttribute('id', 'ar-model');
-      newModel.setAttribute('gps-new-entity-place', `latitude: ${lat}; longitude: ${lon}`);
-      newModel.setAttribute('gltf-model', 'model.glb');
-      newModel.setAttribute('scale', `${scale} ${scale} ${scale}`);
-      newModel.setAttribute('position', `${posX} ${posY} ${posZ}`);
-      newModel.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
-      
-      // Add to scene
-      scene.appendChild(newModel);
-      
-      console.log('Model recreated with:', { lat, lon, scale, posX, posY, posZ });
-    }
-
-    // Update target display
-    document.getElementById('target-display').textContent = `Target: ${lat}, ${lon}`;
-    
-    // Update distance calculation
-    targetLat = lat;
-    targetLon = lon;
-
-    modal.classList.remove('active');
-    alert('Settings applied successfully! ✅');
+    // Reload page to apply new GPS coordinates
+    alert('Settings saved! Reloading AR view...');
+    location.reload();
   });
 
   // Photo capture functionality
